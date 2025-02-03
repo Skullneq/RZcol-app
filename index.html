@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание колледжа</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --header-bg: #fff;
+            --nav-bg: #fff;
+            --card-bg: #fff;
+            --primary-color: #0088cc;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .dark-theme {
+            --bg-color: #1a1a1a;
+            --text-color: #fff;
+            --header-bg: #2d2d2d;
+            --nav-bg: #2d2d2d;
+            --card-bg: #333;
+            --primary-color: #4da8da;
+            --shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 8px 15px;
+            background: var(--header-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            height: 50px;
+            box-sizing: border-box;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--text-color);
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+        .container {
+            padding: 15px;
+            margin: 50px 0 60px;
+            min-height: calc(100vh - 110px);
+            overflow-y: auto;
+        }
+
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            height: 60px;
+            background: var(--nav-bg);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        .nav-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-color);
+        }
+
+        .nav-button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .schedule-buttons {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .schedule-btn {
+            padding: 8px 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            flex: 1;
+        }
+
+        .group-select, .teacher-select {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            display: none;
+        }
+
+        .schedule-view {
+            margin-top: 15px;
+            padding: 12px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .event-item {
+            background: var(--card-bg);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h2 id="currentTab" style="margin: 0; font-size: 1.1rem;">Расписание</h2>
+        <button class="theme-toggle" onclick="toggleTheme()">🌞</button>
+    </div>
+
+    <div class="container">
+        <div id="scheduleTab" class="tab-content active">
+            <div class="schedule-buttons">
+                <button class="schedule-btn" onclick="toggleSelection('group')">Занятия</button>
+                <button class="schedule-btn" onclick="toggleSelection('teacher')">Преподаватели</button>
+            </div>
+            
+            <select id="groupSelect" class="group-select">
+                <option value="">Выберите группу</option>
+                <option>Группа 1</option>
+                <option>Группа 2</option>
+            </select>
+            
+            <select id="teacherSelect" class="teacher-select">
+                <option value="">Выберите преподавателя</option>
+                <option>Преподаватель 1</option>
+                <option>Преподаватель 2</option>
+            </select>
+            
+            <div id="scheduleView" class="schedule-view">
+                Выберите группу или преподавателя
+            </div>
+        </div>
+
+        <div id="eventsTab" class="tab-content">
+            <div class="events-list">
+                <div class="event-item">
+                    <h3 style="margin: 0 0 5px;">Важное событие!</h3>
+                    <p style="margin: 0 0 5px;">Завтра собрание в актовом зале в 10:00</p>
+                    <small style="color: #666;">01.01.2024</small>
+                </div>
+                <div class="event-item">
+                    <h3 style="margin: 0 0 5px;">Изменение расписания</h3>
+                    <p style="margin: 0 0 5px;">Пары по физике переносятся на пятницу</p>
+                    <small style="color: #666;">30.12.2023</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bottom">
+        <button class="nav-button active" onclick="switchTab('schedule')">Расписание</button>
+        <button class="nav-button" onclick="switchTab('events')">События</button>
+    </div>
+
+    <script>
+        // Все функции JavaScript остаются без изменений
+        function switchTab(tabName) {
+            const tabTitles = {'schedule': 'Расписание', 'events': 'События'};
+            document.getElementById('currentTab').textContent = tabTitles[tabName];
+            
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function toggleSelection(type) {
+            const groupSelect = document.getElementById('groupSelect');
+            const teacherSelect = document.getElementById('teacherSelect');
+            
+            groupSelect.style.display = type === 'group' ? 'block' : 'none';
+            teacherSelect.style.display = type === 'teacher' ? 'block' : 'none';
+            
+            groupSelect.addEventListener('change', () => showSchedule('group', groupSelect.value));
+            teacherSelect.addEventListener('change', () => showSchedule('teacher', teacherSelect.value));
+        }
+
+        function showSchedule(type, value) {
+            const scheduleData = {
+                group: {
+                    'Группа 1': ['Понедельник: Математика - 10:00', 'Вторник: Физика - 11:00'],
+                    'Группа 2': ['Понедельник: Химия - 09:00', 'Вторник: Биология - 12:00']
+                },
+                teacher: {
+                    'Преподаватель 1': ['Среда: Консультации - 14:00', 'Четверг: Семинар - 16:00'],
+                    'Преподаватель 2': ['Пятница: Лабораторная - 10:00', 'Суббота: Экзамен - 09:00']
+                }
+            };
+
+            const schedule = scheduleData[type][value];
+            const scheduleView = document.getElementById('scheduleView');
+            scheduleView.innerHTML = schedule ? 
+                `<h3 style="margin: 0 0 10px;">Расписание ${value}:</h3>
+                 ${schedule.map(item => `<p style="margin: 5px 0;">${item}</p>`).join('')}` :
+                'Расписание не найдено';
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const themeButton = document.querySelector('.theme-toggle');
+            themeButton.textContent = document.body.classList.contains('dark-theme') ? '🌜' : '🌞';
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        }
+
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.querySelector('.theme-toggle').textContent = '🌜';
+            }
+            document.querySelectorAll('.group-select, .teacher-select').forEach(select => {
+                select.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
