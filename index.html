@@ -289,7 +289,7 @@
             try {
                 const initData = new URLSearchParams(Telegram.WebApp.initData);
                 const user = JSON.parse(initData.get('user'));
-                const response = await fetch('http://ВАШ_IP:5000/api/events', {
+                const response = await fetch('https://skullneq.github.io/RZcol-app/api/events', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({user_id: user.id, text: ''})
@@ -313,7 +313,7 @@
 
         async function loadEvents() {
             try {
-                const response = await fetch('http://ВАШ_IP:5000/api/events');
+                const response = await fetch('https://skullneq.github.io/RZcol-app/api/events');
                 const events = await response.json();
                 const eventsHTML = events.map(event => `
                     <div class="event-item">
@@ -334,7 +334,7 @@
             try {
                 const initData = new URLSearchParams(Telegram.WebApp.initData);
                 const user = JSON.parse(initData.get('user'));
-                await fetch('http://ВАШ_IP:5000/api/events', {
+                await fetch('https://skullneq.github.io/RZcol-app/api/events', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({user_id: user.id, text: text})
