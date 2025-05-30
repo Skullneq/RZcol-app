@@ -131,11 +131,9 @@
 
         .schedule-view {
             margin-top: 15px;
-            padding: 12px;
             background: var(--card-bg);
             border-radius: 8px;
             box-shadow: var(--shadow);
-            overflow-x: auto;
         }
 
         .event-item {
@@ -146,48 +144,54 @@
             box-shadow: var(--shadow);
         }
 
-        /* Стили для таблицы расписания */
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+        /* Стили для расписания с вертикальными днями */
+        .day-schedule {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
         }
         
-        .schedule-table th, .schedule-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-            min-width: 120px;
+        .dark-theme .day-schedule {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
-        .schedule-table th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .schedule-table tr:nth-child(even) {
-            background-color: rgba(0,0,0,0.05);
-        }
-        
-        .dark-theme .schedule-table tr:nth-child(even) {
-            background-color: rgba(255,255,255,0.05);
-        }
-        
-        .time-cell {
+        .day-header {
             font-weight: bold;
-            background-color: rgba(0,0,0,0.03);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--primary-color);
         }
         
-        .dark-theme .time-cell {
-            background-color: rgba(255,255,255,0.05);
+        .lesson-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
         }
         
-        .no-class {
+        .dark-theme .lesson-item {
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+        
+        .lesson-time {
+            font-weight: bold;
+            min-width: 100px;
+            color: var(--primary-color);
+        }
+        
+        .lesson-details {
+            flex: 1;
+            padding-left: 10px;
+        }
+        
+        .no-lesson {
+            padding: 10px 0;
             color: #999;
             font-style: italic;
         }
         
-        .dark-theme .no-class {
+        .dark-theme .no-lesson {
             color: #aaa;
         }
     </style>
@@ -213,8 +217,10 @@
             
             <select id="teacherSelect" class="teacher-select">
                 <option value="">Выберите преподавателя</option>
-                <option>Преподаватель 1</option>
-                <option>Преподаватель 2</option>
+                <option>Иванов И.И.</option>
+                <option>Петров П.П.</option>
+                <option>Сидоров С.С.</option>
+                <option>Кузнецова Е.В.</option>
             </select>
             
             <div id="scheduleView" class="schedule-view">
@@ -279,42 +285,41 @@
             document.getElementById('scheduleView').innerHTML = 'Выберите группу или преподавателя';
         }
 
-        function generateScheduleTable(scheduleData, type, value) {
-            let tableHTML = `
-                <h3 style="margin: 0 0 10px;">Расписание ${value}:</h3>
-                <table class="schedule-table">
-                    <thead>
-                        <tr>
-                            <th>Время</th>
-                            ${weekDays.map(day => `<th>${day}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+        function generateDaySchedule(day, lessons, type) {
+            let html = `<div class="day-schedule">
+                <div class="day-header">${day}</div>`;
             
             for (let i = 0; i < timeSlots.length; i++) {
-                tableHTML += `<tr><td class="time-cell">${timeSlots[i]}</td>`;
+                const lesson = lessons[i];
                 
-                for (let j = 0; j < weekDays.length; j++) {
-                    const day = weekDays[j];
-                    const lesson = scheduleData[day] ? scheduleData[day][i] : null;
-                    
-                    if (lesson) {
-                        if (type === 'group') {
-                            tableHTML += `<td>${lesson.subject}<br><small>${lesson.teacher}</small></td>`;
-                        } else {
-                            tableHTML += `<td>${lesson.subject}<br><small>${lesson.group}</small></td>`;
-                        }
+                if (lesson) {
+                    if (type === 'group') {
+                        html += `<div class="lesson-item">
+                            <div class="lesson-time">${timeSlots[i]}</div>
+                            <div class="lesson-details">
+                                ${lesson.subject}
+                                <div><small>${lesson.teacher}</small></div>
+                            </div>
+                        </div>`;
                     } else {
-                        tableHTML += `<td class="no-class">—</td>`;
+                        html += `<div class="lesson-item">
+                            <div class="lesson-time">${timeSlots[i]}</div>
+                            <div class="lesson-details">
+                                ${lesson.subject}
+                                <div><small>${lesson.group}</small></div>
+                            </div>
+                        </div>`;
                     }
+                } else {
+                    html += `<div class="lesson-item">
+                        <div class="lesson-time">${timeSlots[i]}</div>
+                        <div class="lesson-details no-lesson">—</div>
+                    </div>`;
                 }
-                
-                tableHTML += `</tr>`;
             }
             
-            tableHTML += `</tbody></table>`;
-            return tableHTML;
+            html += `</div>`;
+            return html;
         }
 
         function showSchedule(type, value) {
@@ -422,45 +427,45 @@
                     }
                 },
                 teacher: {
-                    'Преподаватель 1': {
+                    'Иванов И.И.': {
                         'Понедельник': [
+                            { subject: 'Математика', group: 'Группа 1' },
                             null,
                             { subject: 'Математика', group: 'Группа 2' },
                             null,
-                            { subject: 'Информатика', group: 'Группа 1' },
                             null,
                             null
                         ],
                         'Вторник': [
-                            { subject: 'Физика', group: 'Группа 1' },
                             null,
                             null,
-                            { subject: 'Математика', group: 'Группа 2' },
+                            null,
+                            null,
                             null,
                             null
                         ],
                         'Среда': [
                             null,
+                            { subject: 'Математика', group: 'Группа 1' },
                             null,
-                            { subject: 'Информатика', group: 'Группа 2' },
+                            { subject: 'Математика', group: 'Группа 2' },
                             null,
-                            { subject: 'Физика', group: 'Группа 1' },
                             null
                         ],
                         'Четверг': [
                             null,
-                            { subject: 'Математика', group: 'Группа 1' },
+                            null,
                             null,
                             null,
                             null,
                             null
                         ],
                         'Пятница': [
-                            { subject: 'Физика', group: 'Группа 2' },
-                            null,
-                            { subject: 'Информатика', group: 'Группа 1' },
                             null,
                             null,
+                            { subject: 'Математика', group: 'Группа 1' },
+                            null,
+                            { subject: 'Математика', group: 'Группа 2' },
                             null
                         ],
                         'Суббота': [
@@ -472,45 +477,45 @@
                             null
                         ]
                     },
-                    'Преподаватель 2': {
+                    'Петров П.П.': {
                         'Понедельник': [
-                            { subject: 'История', group: 'Группа 1' },
                             null,
-                            { subject: 'Химия', group: 'Группа 2' },
+                            { subject: 'Физика', group: 'Группа 1' },
+                            null,
                             null,
                             null,
                             null
                         ],
                         'Вторник': [
                             null,
-                            { subject: 'Биология', group: 'Группа 1' },
                             null,
-                            { subject: 'История', group: 'Группа 2' },
+                            null,
+                            { subject: 'Физика', group: 'Группа 2' },
                             null,
                             null
                         ],
                         'Среда': [
-                            { subject: 'Химия', group: 'Группа 1' },
                             null,
                             null,
-                            { subject: 'Биология', group: 'Группа 2' },
                             null,
+                            null,
+                            { subject: 'Физика', group: 'Группа 1' },
                             null
                         ],
                         'Четверг': [
+                            { subject: 'Физика', group: 'Группа 2' },
                             null,
                             null,
-                            { subject: 'История', group: 'Группа 1' },
                             null,
-                            { subject: 'Химия', group: 'Группа 2' },
+                            null,
                             null
                         ],
                         'Пятница': [
                             null,
-                            { subject: 'Биология', group: 'Группа 1' },
                             null,
-                            { subject: 'История', group: 'Группа 2' },
                             null,
+                            null,
+                            { subject: 'Физика', group: 'Группа 1' },
                             null
                         ],
                         'Суббота': [
@@ -533,7 +538,15 @@
                 return;
             }
 
-            scheduleView.innerHTML = generateScheduleTable(data, type, value);
+            // Генерируем расписание для каждого дня
+            let html = `<h3 style="margin: 10px 15px;">Расписание ${value}</h3>`;
+            for (const day of weekDays) {
+                if (data[day]) {
+                    html += generateDaySchedule(day, data[day], type);
+                }
+            }
+            
+            scheduleView.innerHTML = html;
         }
 
         function toggleTheme() {
